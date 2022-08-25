@@ -170,8 +170,8 @@ objects:
             initialDelaySeconds: 5
           resources:
             limits:
-              cpu: "400m"
-              memory: "800Mi"
+              cpu: "500m"
+              memory: "2000Mi"
             requests:
               cpu: "200m"
               memory: "200Mi"
