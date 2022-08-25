@@ -9,7 +9,7 @@ Overview video quickly runs through some features of this reference architecture
 First, clone this repository:
 
 ````
-$ git clone https://github.com/RHsyseng/spring-boot-msa-ocp.git LambdaAir
+$ git clone https://github.com/Heesun-Yang/spring-boot-msa-ocp.git LambdaAir
 ````
 
 Change directory to the root of this project. It is assumed that from this point on, all instructions are executed from inside the *LambdaAir* directory.
@@ -18,56 +18,7 @@ Change directory to the root of this project. It is assumed that from this point
 $ cd LambdaAir
 ````
 
-## Shared Storage
-This reference architecture environment uses Network File System (NFS) to make storage available to all OpenShift nodes. 
-
-Attach 2GB of storage and create a volume group for it, and two logical volumes of 1GB for each required persistent volume. For example:
-
-````
-$ sudo pvcreate /dev/vdc
-$ sudo vgcreate spring-boot-ocp /dev/vdc
-$ sudo lvcreate -L 1G -n zipkin spring-boot-ocp
-$ sudo lvcreate -L 1G -n zuul spring-boot-ocp
-````
-
-Create a corresponding mount directory for each logical volume and mount them.
-
-````
-$ sudo mkfs.ext4 /dev/spring-boot-ocp/zipkin
-$ sudo mkdir -p /mnt/zipkin/mysql
-$ sudo mount /dev/spring-boot-ocp/zipkin /mnt/zipkin/mysql
-
-$ sudo mkfs.ext4 /dev/spring-boot-ocp/zuul
-$ sudo mkdir -p /mnt/zuul/volume
-$ sudo mount /dev/spring-boot-ocp/zuul /mnt/zuul/volume
-````
-
-Share these mounts with all nodes by configuring the */etc/exports* file on the NFS server, and make sure to restart the NFS service before proceeding.
-
 ## OpenShift Configuration
-Create an OpenShift user, optionally with the same name, to use for creating the project and deploying the application. Assuming the use of [HTPasswd](https://access.redhat.com/documentation/en-us/openshift_container_platform/3.7/html/installation_and_configuration/install-config-configuring-authentication#HTPasswdPasswordIdentityProvider) as the authentication provider:
-
-````
-$ sudo htpasswd -c /etc/origin/master/htpasswd ocpAdmin
-New password: PASSWORD
-Re-type new password: PASSWORD
-Adding password for user ocpAdmin
-````
-
-Grant OpenShift admin and cluster admin roles to this user, so it can create persistent volumes:
-
-````
-$ sudo oadm policy add-cluster-role-to-user admin ocpAdmin
-$ sudo oadm policy add-cluster-role-to-user cluster-admin ocpAdmin
-````
-
-At this point, the new OpenShift user can be used to sign in to the cluster through the master server:
-
-````
-$ oc login -u ocpAdmin -p PASSWORD --server=https://ocp-master1.xxx.example.com:8443
-
-Login successful.
-````
 
 Create a new project to deploy this reference architecture application:
 
@@ -232,7 +183,7 @@ zuul-s2i-1-build           0/1       Completed   0          2m
 ````
 
 ## Flight Search
-The *presentation* service also creates a [route](https://raw.githubusercontent.com/RHsyseng/spring-boot-msa-ocp/master/Presentation/src/main/fabric8/route.yml). Once again, list the routes in the OpenShift project:
+The *presentation* service also creates a [route](https://raw.githubusercontent.com/Heesun-Yang/spring-boot-msa-ocp/master/Presentation/src/main/fabric8/route.yml). Once again, list the routes in the OpenShift project:
 
 ````
 $ oc get routes
@@ -244,7 +195,7 @@ zipkin         zipkin-lambdaair.ocp.xxx.example.com                   zipkin    
 Use the URL of the route to access the HTML application from a browser, and verify that it comes up. Search for a flight by entering values for each of the four fields. The first search may take a bit longer, so wait a few seconds for the response.
 
 ## External Configuration
-The *Presentation* service configures *Hystrix* with a [thread pool size](https://github.com/RHsyseng/spring-boot-msa-ocp/blob/master/Presentation/src/main/resources/application.yml#L22) of 20 in its environment properties. Confirm this by searching the logs of the presentation pod after a flight search operation and verify that the batch size is the same:
+The *Presentation* service configures *Hystrix* with a [thread pool size](https://github.com/Heesun-Yang/spring-boot-msa-ocp/blob/master/Presentation/src/main/resources/application.yml#L22) of 20 in its environment properties. Confirm this by searching the logs of the presentation pod after a flight search operation and verify that the batch size is the same:
 
 ````
 $ oc logs presentation-1-k2xlz | grep batch
